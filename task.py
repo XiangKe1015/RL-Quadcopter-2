@@ -29,26 +29,20 @@ class Task():
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
-        #reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
-        
-        #return reward
-        reward = 0.0
-        
-        #reward -= (abs(self.sim.pose[:2] - self.init_pose[:2])).sum()
-
+       
         # Reward positive velocity along z-axis
         reward_vz = self.sim.v[2]
         
         # Reward positions close to target along z-axis
         reward_posz = -(abs(self.sim.pose[2] - self.target_pos[2]))
         
-        #reward -= (abs(self.sim.pose[-3:])).sum()
-
-        # A lower sensativity towards drifting in the xy-plane
+        # Reward positions close to target in xy-plane
         reward_posxy = -(abs(self.sim.pose[:2] - self.target_pos[:2])).sum()
         
+        # Reward ang change smoothly
         reward_ang= -(abs(self.sim.angular_v[:3])).sum()*0.5 
         
+        # Reward additional -1 to punish for each step, to reach target fast
         return reward_vz+reward_posz+reward_posxy+reward_ang-1.0
 
     def step(self, rotor_speeds):
@@ -62,7 +56,9 @@ class Task():
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
             reward += self.get_reward() 
             pose_all.append(self.sim.pose)
-
+            
+            #Get a huge reward if Z reaches target, the policy is quick take off to the Z height.
+            #This is may be tricky...
             if self.sim.pose[2] >= self.target_pos[2]:
                 reward += 100
                 done = True
