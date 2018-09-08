@@ -58,7 +58,7 @@ class Task():
             pose_all.append(self.sim.pose)
             
             #Get a huge reward if Z reaches target, the policy is quick take off to the Z height.
-            #This is may be tricky...
+            #This is may be tricky for this specific task, and may not work well for other take off task..
             if self.sim.pose[2] >= self.target_pos[2]:
                 reward += 100
                 done = True
